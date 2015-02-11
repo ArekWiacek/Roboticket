@@ -1,0 +1,29 @@
+﻿.dotted-border {
+  border: 1px dotted black;
+}
+
+.console-container {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.color-picker {
+    padding: 5px;
+}
+
+.canvas-style {
+    border: 1px solid #FFF;
+}
+
+
+.color-picker {
+    width: 100% !important;
+    padding:5px;
+}
+
+
+
+.section {
+    margin-top: 2em;
+}
+

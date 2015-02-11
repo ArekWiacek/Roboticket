@@ -1,0 +1,507 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="ng-scope" ng-app="ticketDesigner">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Ticket designer</title>
+
+    <script src="Scripts/Lib/jquery-2.1.3.js" type="text/javascript"></script>
+    <script src="Scripts/Lib/fabric.js"></script>
+    <script src="Scripts/Lib/angular.js"></script>
+    <script src="Scripts/Lib/bootstrap.js"></script>
+    <script src="Scripts/master.js"></script>
+    <script src="Scripts/custom.js"></script>
+
+    <link href="CSS/bootstrap.css" rel="stylesheet">
+    <link href="CSS/bootstrap_cyborg.css" rel="stylesheet">
+    <link rel="stylesheet" href="Content/TicketDesigner/TicketDesigner.css">
+</head>
+<body>
+    <!-- MAIN CONTAINER -->
+    <div id="bd-wrapper" class="container-fluid ng-scope" ng-controller="CanvasController">
+
+        <div class="row section hidden">
+            <div class="col-md-5">
+                <input type='hidden' id='xmlContainer' />
+                {{title}}
+
+                <div>
+                    <p>textelements[0]: {{textElements[0]}}</p>
+                    <p>textelements[0].ff: {{textElements[0].fontFamily}}</p>
+                    <p> textelements[0]["fontFamily": {{textElements[0]['fontFamily']}}</p>
+                </div>
+
+                <ul>
+                    <li ng-repeat="textElement in textElements">
+                        <h2>Element: {{textElement.id}} </h2><br/>
+
+                        Properties</br>
+                        {{textElement.fontFamily}}
+                        {{textElement.fill}}
+                        {{textElement.left}}
+                        {{textElement.top}}
+                    </li>
+
+                </ul>
+            </div>
+
+            <div>
+                <input type='button' ng-click='parseXml()' value='XML'/>
+            </div>
+
+            <div>
+                <input type='button' ng-click='refreshCanvas()' value='Redraw'/>
+            </div>
+        </div>
+
+        <div class="row section">
+            <!-- PROPERTIES -->
+            <div class="col-md-3">
+
+                <!-- TABS -->
+                <!--<ul class="nav nav-tabs">
+                    <li class="active fade in">
+                        <a data-toggle="tab" aria-expanded="false" href="#Canvas">Canvas</a>
+                    </li>
+                    <li class=" fade in">
+                        <a data-toggle="tab" aria-expanded="true" href="#Object">Object</a>
+                    </li>
+                    <li class="fade in">
+                        <a data-toggle="tab" aria-expanded="false" href="#Text">Text</a>
+                    </li>
+                </ul>-->
+
+                <!-- PROPERTIES PANELS-->
+                <div class="tab-content">
+
+                    <!-- CANVAS PROPERTIES -->
+                    <div id="CanvasTabContent" class="well">
+                        <form class="form-horizontal">
+                            <fieldset>
+                                <legend>Canvas</legend>
+
+                                <!-- SIZE -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Size</label>
+
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="Width" type="text"
+                                               bind-value-to="canvasWidth">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="Height" type="text"
+                                               bind-value-to="canvasHeight">
+                                    </div>
+                                </div>
+
+                                <!-- COLOR -->
+                                <div class="form-group">
+                                    <label for="" class="control-label col-md-4">Color</label>
+
+                                    <div class="col-md-8">
+                                        <input type="color" class="form-control btn-object-action color-picker"
+                                               value="#FFFFFF" bind-value-to="canvasBackgroundColor">
+                                    </div>
+                                </div>
+
+                                <!-- BACKGROUND IMAGE -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Image</label>
+
+                                    <div class="col-md-8">
+                                        <select id="backgroundImageSelector" class="form-control btn-object-action"
+                                                bind-value-to="canvasBackgroundImage">
+                                            <option value=""></option>
+                                            <option value="/Content/Files/Images/escheresque.png">escheresque.png
+                                            </option>
+                                            <option value="/Content/Files/Images/fabric.png">fabric.png</option>
+                                            <option value="/Content/Files/Images/honey_im_subtle.png">
+                                                honey_im_subtle.png
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- BACKGROUND IMAGE STYLE -->
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Image style</label>
+
+                                    <div class="col-md-8">
+                                        <select id="" class="form-control btn-object-action"
+                                                bind-value-to="canvasBackgroundImageStyle">
+                                            <option selected value="Center">Center</option>
+                                            <option value="Fill">Fill</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- BACKGROUND IMAGE OPACITY -->
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Image opacity</label>
+
+                                    <div class="col-md-8">
+                                        <input type="range" bind-value-to="canvasBackgroundOpacity"
+                                               class="form-control btn-object-action" min="0" max="100" value="100"
+                                               step="1">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                    <!-- OBJECT PROPERTIES -->
+                    <div id="Object" class="well" ng-show="canvas.getActiveObject()">
+                        <form class="form-horizontal">
+                            <fieldset>
+                                <legend>Object</legend>
+
+                                <!-- SIZE -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Size</label>
+
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="Width" type="text"
+                                               bind-value-to="width" disabled="disabled">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="Height" type="text"
+                                               bind-value-to="height" disabled="disabled">
+                                    </div>
+                                </div>
+
+                                <!-- SCALE -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Scale</label>
+
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="X" type="text"
+                                               bind-value-to="scaleX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input class="form-control btn-object-action" placeholder="Y" type="text"
+                                               bind-value-to="scaleY">
+                                    </div>
+                                </div>
+
+                                <!-- ROTATION -->
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Rotation</label>
+
+                                    <div class="col-md-8">
+                                        <input class="form-control btn-object-action" placeholder="Angle" type="range"
+                                               bind-value-to="angle" min="0" max="360" step="1">
+                                    </div>
+                                </div>
+
+                                <!-- COLOR & OPACITY -->
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Fill color</label>
+
+                                    <div class="col-md-8">
+                                        <input type="color" bind-value-to="fill"
+                                               class="form-control btn-object-action color-picker">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Fill opacity</label>
+
+                                    <div class="col-md-8">
+                                        <input type="range" bind-value-to="opacity"
+                                               class="form-control btn-object-action" min="0" max="100" value="100"
+                                               step="1">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Stroke color</label>
+
+                                    <div class="col-md-8">
+                                        <input type="color" bind-value-to="strokeColor"
+                                               class="form-control btn-object-action color-picker" value="100">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Stroke width</label>
+
+                                    <div class="col-md-8">
+                                        <input type="range" bind-value-to="strokeWidth"
+                                               class="form-control btn-object-action" min="0" max="10">
+                                    </div>
+                                </div>
+
+                                <!-- LOCKS -->
+                                <div class="form-group">
+                                    <label for="" class="control-label col-md-4">Lock</label>
+
+                                    <div class="col-md-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="" bind-value-to="lockMovementX"
+                                                       title="X movement"
+                                                       ng-click="setHorizontalLock(!getHorizontalLock())">
+                                                Horizontal move
+
+                                            </label>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="" bind-value-to="lockMovementY"
+                                                       title="Y movement"
+                                                       ng-click="setVerticalLock(!getVerticalLock())">
+                                                Horizontal move
+
+                                            </label>
+                                        </div>
+
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="" bind-value-to="lockScalingX"
+                                                       title="X scaling" ng-click="setScaleLockX(!getScaleLockX());">
+                                                </input>X scaling
+
+                                            </label>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="" bind-value-to="lockScalingY"
+                                                       title="Y scaling" ng-click="setScaleLockY(!getScaleLockY());">
+                                                Y scaling
+
+                                            </label>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="" bind-value-to="lockRotation"
+                                                       title="Y scaling" ng-click="setRotationLock(!getRotationLock())">
+                                                Rotation
+
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LAYER ORDER BUTTONS -->
+                                <div class="form-group">
+                                    <label for="" class="col-md-4 control-label">Stack order</label>
+
+                                    <div class="object-controls col-md-8" object-buttons-enabled="getSelected()">
+                                        <button id="Button3" class="btn btn-object-action btn-default"
+                                                ng-click="sendToBack()">
+                                            <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+                                        </button>
+                                        <button id="Button2" class="btn btn-object-action btn-default"
+                                                ng-click="sendBackwards()">
+                                            <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+                                        </button>
+                                        <button id="Button4" class="btn btn-object-action btn-default"
+                                                ng-click="bringForward()">
+                                            <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+                                        </button>
+                                        <button id="Button5" class="btn btn-object-action btn-default"
+                                                ng-click="bringToFront()">
+                                            <span class="glyphicon glyphicon-arrow-up" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- DELETE BUTTON -->
+                                <div class="form-group">
+                                    <div class="object-controls col-md-12" object-buttons-enabled="getSelected()">
+                                        <button class="btn btn-object-action btn-default pull-right btn-danger"
+                                                id="Button6" ng-click="removeSelected()">
+                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                    <!-- Text Properties -->
+                    <div id="Text" class="well" ng-show="getText()">
+                        <form class="form-horizontal ng-pristine ng-valid">
+                            <fieldset>
+                                <legend>Text</legend>
+
+                                <!-- TEXT CONTAINER -->
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <textarea class="form-control  col-md-12" bind-value-to="text"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <!-- FONT STYLE -->
+                                    <div class="col-md-4">
+                                        <select id="font-family" class="btn-object-action form-control"
+                                                bind-value-to="fontFamily">
+                                            <option value="arial">Arial</option>
+                                            <option value="helvetica" selected="">Helvetica</option>
+                                            <option value="myriad pro">Myriad Pro</option>
+                                            <option value="delicious">Delicious</option>
+                                            <option value="verdana">Verdana</option>
+                                            <option value="georgia">Georgia</option>
+                                            <option value="courier">Courier</option>
+                                            <option value="comic sans ms">Comic Sans MS</option>
+                                            <option value="impact">Impact</option>
+                                            <option value="monaco">Monaco</option>
+                                            <option value="optima">Optima</option>
+                                            <option value="hoefler text">Hoefler Text</option>
+                                            <option value="plaster">Plaster</option>
+                                            <option value="engagement">Engagement</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- FONT SIZE -->
+                                    <div class="col-md-4">
+                                        <input type="text" value="" min="1" max="120" step="1" id="text-font-size"
+                                               class="form-control" bind-value-to="fontSize">
+                                    </div>
+
+                                    <!-- FONT COLOR -->
+
+                                    <div class="col-md-4">
+                                        <input type="color" value="" id="text-bg-color" size="10"
+                                               class="btn-object-action form-control color-picker"
+                                               bind-value-to="bgColor">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <!-- TEXT ALIGN -->
+                                    <div class="col-md-2">
+                                        <select id="text-align" class="btn-object-action form-control"
+                                                bind-value-to="textAlign">
+                                            <option value="Left">Left</option>
+                                            <option value="Center">Center</option>
+                                            <option value="Right">Right</option>
+                                            <option value="Justify">Justify</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- BOLD / ITALIC / UNDERLINE / OVERLINE -->
+                                    <div id="text-controls-additional" class="col-md-10">
+                                        <button type="button" class="btn btn-object-action btn-default"
+                                                ng-click="toggleBold()" ng-class="{'btn-inverse': isBold()}">
+                                            Bold
+
+                                        </button>
+                                        <button type="button" class="btn btn-object-action btn-default"
+                                                id="text-cmd-italic" ng-click="toggleItalic()"
+                                                ng-class="{'btn-inverse': isItalic()}">
+                                            Italic
+
+                                        </button>
+                                        <button type="button" class="btn btn-object-action btn-default"
+                                                id="text-cmd-underline" ng-click="toggleUnderline()"
+                                                ng-class="{'btn-inverse': isUnderline()}">
+                                            Underline
+
+                                        </button>
+                                        <button type="button" class="btn btn-object-action btn-default"
+                                                id="text-cmd-linethrough" ng-click="toggleLinethrough()"
+                                                ng-class="{'btn-inverse': isLinethrough()}">
+                                            Linethrough
+
+                                        </button>
+                                        <button type="button" class="btn btn-object-action btn-default"
+                                                id="text-cmd-overline" ng-click="toggleOverline()"
+                                                ng-class="{'btn-inverse': isOverline()}">
+                                            Overline
+
+                                        </button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CANVAS & TOOLBOX -->
+            <div class="col-md-9">
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button type="button" class="btn  btn-primary btn-object-action rect" ng-click="addRect()">
+                            Rectangle
+                        </button>
+                        <button type="button" class="btn  btn-primary btn-object-action circle" ng-click="addCircle()">
+                            Circle
+                        </button>
+                        <button type="button" class="btn  btn-primary btn-object-action triangle"
+                                ng-click="addTriangle()">Triangle
+                        </button>
+                        <button type="button" class="btn  btn-primary btn-object-action line" ng-click="addLine()">
+                            Line
+                        </button>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-object-action text" ng-click="addText()">Text
+                        </button>
+                        <button type="button" class="btn  btn-primary btn-object-action image1"
+                                ng-click="addSampleImage()">Image
+                        </button>
+
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-danger btn-object-action clear pull-right"
+                                ng-click="confirmClear()">Clear canvas
+                        </button>
+                    </div>
+                </div>
+
+                <div id="canvas-wrapper" class="section">
+                    <canvas id="canvas" width="800" height="500" class="canvas-style"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="Scripts/Lib/font_definitions.js"></script>
+
+    <script>
+        var ticketDesigner = {};
+        var canvas = new fabric.Canvas('canvas');
+    </script>
+
+    <script src="Scripts/Lib/utils.js"></script>
+    <script src="Scripts/app_config.js"></script>
+    <script src="Scripts/controller.js"></script>
+
+    <script>
+        (function () {
+            var mainScriptEl = document.getElementById('main');
+            if (!mainScriptEl) return;
+            var preEl = document.createElement('pre');
+            var codeEl = document.createElement('code');
+            codeEl.innerHTML = mainScriptEl.innerHTML;
+            codeEl.className = 'language-javascript';
+            preEl.appendChild(codeEl);
+            document.getElementById('bd-wrapper').appendChild(preEl);
+        })();
+    </script>
+
+    <script>
+        (function () {
+            fabric.util.addListener(fabric.window, 'load', function () {
+                var canvas = this.__canvas || this.canvas,
+                    canvases = this.__canvases || this.canvases;
+
+                canvas && canvas.calcOffset && canvas.calcOffset();
+
+                if (canvases && canvases.length) {
+                    for (var i = 0, len = canvases.length; i < len; i++) {
+                        canvases[i].calcOffset();
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
