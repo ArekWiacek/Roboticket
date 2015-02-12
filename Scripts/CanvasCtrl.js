@@ -1,7 +1,7 @@
 // OBJECTS PROPERTIES & STYLES - SETTING AND GETTING
 function getActiveStyle(styleName, object) {
     object = object || canvas.getActiveObject();
-    
+
     if (typeof object !== 'object' || object === null) {
         return '';
     }
@@ -232,7 +232,11 @@ function addAccessors($scope) {
         return getActiveProp('angle');
     };
     $scope.setAngle = function (value) {
-        setActiveProp('angle', value);
+        //setActiveProp('angle', value);
+
+        var activeObject = canvas.getActiveObject();
+        activeObject.setAngle(value).setCoords();
+        canvas.renderAll();
     };
 
     $scope.getScaleX = function () {
@@ -380,11 +384,9 @@ function addAccessors($scope) {
     //
     //initCustomization();
 
-    // 
+    //
     function getProperty(object, property) {
-        var propertyValue = $(object).find(property).text();
-
-        return propertyValue;
+        return $(object).find(property).text();
     }
 
     $scope.textElements = [
@@ -468,7 +470,7 @@ function refreshCanvas(){
 function loadImages() {
     console.log('load images method');
 
-    var directory = '/Content/Files/Images/';
+    var directory = '/Images/';
     var extension = '.png';
 
     jQuery.ajax({
@@ -531,7 +533,7 @@ function initializeDefaults($scope) {
         scaleY: 1,
         width: 100,
         height: 100,
-        padding: 10,
+        padding: 0,
         centeredScaling: false,
         centeredRotation: true,
         opacity: 1,
@@ -547,15 +549,19 @@ function initializeDefaults($scope) {
     }, objectDefaults);
 
     $scope.circleDefaults = angular.extend({
+        type: 'circle',
         radius: 50,
         centeredScaling: true,
         fill: '#' + getRandomColor()
-    }, objectDefaults);  
+    }, objectDefaults);
 
     $scope.triangleDefaults = angular.extend({
+        type: 'triangle',
+        fill: '#' + getRandomColor()
     }, objectDefaults);
 
     $scope.lineDefaults = angular.extend({
+        type: 'line',
         stroke: '#00FF00',
         fill: '#' + getRandomColor(),
         originX: 'center',
@@ -563,37 +569,49 @@ function initializeDefaults($scope) {
     }, objectDefaults);
 
     $scope.rectangleDefaults = angular.extend({
-            width: 100,
-            height: 100,
-            fill: '#' + getRandomColor()
+        type: 'rect',
+        fill: '#' + getRandomColor()
     }, objectDefaults);
+
+    $scope.imageDefaults = angular.extend({
+    }, objectDefaults);
+
+    $scope.addNewObject = function(object, select) {
+        if(!object) return;
+        canvas.add(object);
+
+        if(select != false) {
+            canvas.setActiveObject(object);
+        }
+    };
 
     $scope.addText = function (text) {
         var text = text || 'Some text';
         var textSample = new fabric.Text(text, $scope.textDefaults);
 
-        canvas.add(textSample);
-    };  
+        $scope.addNewObject(textSample);
+    };
 
     $scope.addCircle = function () {
         var circle = new fabric.Circle($scope.circleDefaults);
-        canvas.add(circle);
+        $scope.addNewObject(circle);
     };
 
     $scope.addRect = function () {
-        var rectangle = new fabric.Rect($scope.rectangleDefaults);
-        canvas.add(rectangle);
-    };    
+        var rectangle = $scope.ObjectFactory.newRect('asd');
+        //new fabric.Rect($scope.rectangleDefaults);
+        $scope.addNewObject(rectangle);
+    };
 
     $scope.addTriangle = function () {
         var triangle = new fabric.Triangle($scope.triangleDefaults);
-        canvas.add(triangle);
-    };    
+        $scope.addNewObject(triangle);
+    };
 
     $scope.addLine = function () {
         var line = new fabric.Line([50, 100, 200, 200], $scope.lineDefaults);
-        canvas.add(line);
-    };    
+        $scope.addNewObject(line);
+    };
 
     $scope.addImage = function (imageName) {
         // temp location
@@ -606,9 +624,9 @@ function initializeDefaults($scope) {
             .scale(0.1, 0.1)
             .setCoords();
 
-            canvas.add(image);
+             $scope.addNewObject(image);
         });
-    };    
+    };
 
     $scope.addSampleImage = function() {
         $scope.addImage('fabric.png');
@@ -628,26 +646,40 @@ function watchCanvas($scope) {
       .on('object:selected', updateScope)
       .on('group:selected', updateScope)
       .on('path:created', updateScope)
-      .on('selection:cleared', updateScope);
+      .on('selection:cleared', updateScope)
 
-    //.on('object:rotating', updateScope)
+    .on('object:rotating', updateScope);
     //.on('object:moving', updateScope)
     //.on('object:scaling', updateScope)
     //.on('object:modified', updateScope);
 }
+//
+//ticketDesigner.controller('CanvasCtrl', ['$scope', CanvasCtrl, ObjectFactory]);
+//
+//function CanvasCtrl($scope, ObjectFactory) {
+//   log('ticketDesigner.controller');
+//
+//    $scope.canvas = canvas;
+//    $scope.getActiveStyle = getActiveStyle;
+//
+//    addAccessors($scope);
+//    initializeDefaults($scope);
+//    watchCanvas($scope);
+//}
 
-ticketDesigner.controller('CanvasController', ['$scope', CanvasController]);
-    
-function CanvasController($scope) {
-   log('ticketDesigner.controller');
+ticketDesigner.controller('CanvasCtrl',
+    function CanvasCtrl($scope, ObjectFactory) {
+        log('ticketDesigner.controller');
 
-    $scope.canvas = canvas;
-    $scope.getActiveStyle = getActiveStyle;
+        $scope.canvas = canvas;
+        $scope.getActiveStyle = getActiveStyle;
+        $scope.ObjectFactory = ObjectFactory;
 
-    addAccessors($scope);
-    initializeDefaults($scope);
-    watchCanvas($scope);
-}
+        addAccessors($scope);
+        initializeDefaults($scope);
+        watchCanvas($scope);
+    }
+);
 
 function log(callerMethod) {
     console.log('Method ' + callerMethod + ' executed at time ' + displayTime());
